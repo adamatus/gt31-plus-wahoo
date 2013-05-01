@@ -13,5 +13,5 @@ stride are implented provisionally and may not work.
 
 # Usage
 
-    >> combine.with.gt31('GT31_FILE_NAME','WAHOO_FILE_WF.pwx')
+    >> combine.with.gt31('GT31_FILE_NAME.SBN','WAHOO_FILE_WF.pwx')
 
