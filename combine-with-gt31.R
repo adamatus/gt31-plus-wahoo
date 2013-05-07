@@ -143,21 +143,59 @@ combine.with.gt31 <- function(sbnFile='',pwxFile='',outFile='combined-out.gpx')
   # Open output file
   f <- file(outFile,open='at',)
   
+  do.hr <- 'hr.wahoo' %in% names(sbn.overlap)
+  do.cad <- 'cad.wahoo' %in% names(sbn.overlap)
+  
   # Loop through output row, write to file
   for (i in 1:nrow(sbn.overlap))
   {
     lon <- sbn.overlap[i,'Lon']
     lat <- sbn.overlap[i,'Lat']
+    out <- sprintf('\n    <trkpt lon="%f" lat="%f">\n',lon,lat)
+    
     ele <- sbn.overlap[i,'Altitude..m.']
+    if (is.numeric(ele))
+    {
+      out <- sprintf('%s      <ele>%f</ele>\n',out,ele)
+    }
+    
     time <- format(sbn.overlap[i,'FixedTime'],'%Y-%m-%dT%H:%M:%SZ')
-    hr <- sbn.overlap[i,'hr.wahoo']
-    cat(sprintf(out,lon,lat,ele,time,hr),file=f)
+    out <- sprintf('%s      <time>%s</time>\n',out,time)
+    
+    if (do.hr | do.cad)
+    {
+      out <- sprintf('%s      <extensions>
+        <gpxtpx:TrackPointExtension>\n',out)
+      
+      if (do.hr)
+      {
+        hr <- sbn.overlap[i,'hr.wahoo']
+        if (is.numeric(hr) & !is.na(hr))
+        {
+          out <- sprintf('%s          <gpxtpx:hr>%i</gpxtpx:hr>\n',out,hr)
+        }
+      }
+      
+      if (do.cad)
+      {
+        cad <- sbn.overlap[i,'cad.wahoo']
+        if (is.numeric(cad) & !is.na(cad))
+        {
+          out <- sprintf('%s         <gpxtpx:cad>%i</gpxtpx:cad>\n',out,cad)
+        }
+      }
+      
+      out <- sprintf('%s        </gpxtpx:TrackPointExtension>
+      </extensions>\n',out)
+    }
+      
+    cat(sprintf('%s    </trkpt>',out),file=f)
   }
   
   # Add footer and close file
-  end <- "    </trkseg>
-   </trk>
-  </gpx>"
+  end <- "  </trkseg>
+ </trk>
+</gpx>"
   cat(end,file=f)
   close(f)
 }
